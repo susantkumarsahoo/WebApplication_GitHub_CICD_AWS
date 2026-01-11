@@ -44,7 +44,6 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-          IMAGE_TAG: ${{ github.sha }}
           AWS_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
@@ -53,21 +52,22 @@ jobs:
           echo "$EC2_SSH_KEY" > private_key.pem
           chmod 600 private_key.pem
           
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USERNAME}@${EC2_HOST} << 'EOF'
-            aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            
-            docker stop streamlit-app || true
-            docker rm streamlit-app || true
-            
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
-            
-            docker run -d \
-              --name streamlit-app \
-              -p 8501:8501 \
-              --restart unless-stopped \
-              ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
-            
-            docker image prune -af
+          ssh -o StrictHostKeyChecking=no -i private_key.pem ${EC2_USERNAME}@${EC2_HOST} bash << EOF
+          set -e
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          
+          docker stop streamlit-app || true
+          docker rm streamlit-app || true
+          
+          docker pull ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          
+          docker run -d \
+            --name streamlit-app \
+            -p 8501:8501 \
+            --restart unless-stopped \
+            ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          
+          docker image prune -af
           EOF
           
           rm -f private_key.pem
