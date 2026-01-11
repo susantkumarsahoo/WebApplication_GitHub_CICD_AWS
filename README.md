@@ -7,6 +7,25 @@ Docker image
 # ECR - '727646479568.dkr.ecr.us-east-1.amazonaws.com/webapprepo'
 
 
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+AWS_REGION
+ECR_REPOSITORY
+ECR_REGISTRY
+
+
+sudo apt-get update -y
+sudo apt-get upgrade
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
+newgrp docker
+docker --version
+
+
+
+
+
 
 
 # Streamlit App CI/CD Pipeline with GitHub Actions and AWS
